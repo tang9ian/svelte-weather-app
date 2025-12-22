@@ -13,6 +13,28 @@
 	const API_KEY = import.meta.env.VITE_WEATHER_API_KEY || 'your-api-key-here';
 	const API_URL = import.meta.env.VITE_WEATHER_API_URL || 'https://api.openweathermap.org/data/2.5/weather';
 
+	async function fetchWeatherByCoords(lat, lon) {
+		loading = true;
+		error = null;
+		
+		try {
+			const response = await fetch(
+				`${API_URL}?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric`
+			);
+			
+			if (!response.ok) {
+				throw new Error(`{$t('error')}`);
+			}
+			
+			weather = await response.json();
+		} catch (err) {
+			error = err.message;
+			fetchWeather('Sacramento'); // Fallback to default city
+		} finally {
+			loading = false;
+		}
+	}
+
 	async function fetchWeather(city = 'Sacramento') {
 		loading = true;
 		error = null;
@@ -34,8 +56,23 @@
 		}
 	}
 
+	function getUserLocation() {
+		if (navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(
+				(position) => {
+					fetchWeatherByCoords(position.coords.latitude, position.coords.longitude);
+				},
+				() => {
+					fetchWeather(); // Fallback to default city
+				}
+			);
+		} else {
+			fetchWeather(); // Fallback to default city
+		}
+	}
+
 	onMount(() => {
-		fetchWeather();
+		getUserLocation();
 	});
 
 	function handleSearch(event) {
