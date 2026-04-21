@@ -25,5 +25,9 @@ export function getCitySuggestions(query, locale = 'en') {
   
   return cities
     .filter(city => city.toLowerCase().includes(lowerQuery))
-    .slice(0, 5);
+    .slice(0, 5)
+    .map(city => ({
+      label: city,
+      query: city
+    }));
 }
